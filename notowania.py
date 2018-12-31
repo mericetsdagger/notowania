@@ -1,5 +1,5 @@
 import requests
- 
+ #git test
 def not_allowed(insert_statement):
     not_allowed_list = ['SELECT','DROP','DELETE','UPDATE']
     for i in not_allowed_list:
