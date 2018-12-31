@@ -19,9 +19,7 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
     a_min = 0
     a_zamkniecie = 0
 
-    for i in lista:
-        for ii in liczba_przecinkow:
-            przecinek = i.find(",",
+    for i in lista:          
             
     
         
