@@ -1,4 +1,5 @@
 import requests
+import pymysql
 
 def not_allowed(insert_statement):
     not_allowed_list = ['SELECT','DROP','DELETE','UPDATE']
@@ -37,7 +38,7 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
         przecinek = i.find(",",przecinek+1)
         a_zamkniecie = i[przecinek+1:i.find(",",przecinek+1)]
 
-        a_insert = a_insert + ("\n ('{}',to_date('{}','YYYYMMDD'), {}, {}, {}, {})").format(a_1,
+        a_insert = a_insert + ("\n ('{}',str_to_date('{}','%Y%m%d'), {}, {}, {}, {})").format(a_1,
                                                                                             a_data,
                                                                                             a_otwarcie,
                                                                                             a_maks,
@@ -62,3 +63,19 @@ sql_zagranica = split_txt_to_insert(strona_zagranica, "GIELDY", "GIELDA")
 strona_waluty = requests.get("http://bossa.pl/pub/waluty/mstock/sesjanbp/sesjanbp.prn").text
 sql_waluty = split_txt_to_insert(strona_waluty, "WALUTY", "WALUTA")
 
+#pakowanie do bazy
+connection = pymysql.connect(host = "host",
+                             user = "user",
+                             passwd = "passwd",
+                             db = "mysql",
+                             charset = "utf8mb4",
+                             cursorclass = pymysql.cursors.DictCursor)
+
+cur = connection.cursor()
+cc = cur.execute(sql_notowania)
+print(cc)
+for row in cur:
+    print(1)
+connection.commit()    
+cur.close()
+connection.close()
