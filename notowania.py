@@ -25,16 +25,21 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
  
     with open("notowania_omitted.txt","r") as f:
         o_text = f.read()
-    
     omitted = o_text.split("\n")
     del omitted[-1]
 
+    with open("lista_wig.txt","r") as e:
+        l_text = e.read()
+    wigi = l_text.split("\n")
+
+### zmiana if do obdlugi wig
     for i in lista:
         
         przecinek = i.find(",")
         a_1 = i[0:przecinek]
         if a_1 in omitted:
             lista.remove(i)
+            
         else:    
             przecinek = i.find(",",przecinek)
             a_data = i[przecinek+1:i.find(",",przecinek+1)]
@@ -65,7 +70,7 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
 notowania = requests.get("http://bossa.pl/pub/ciagle/omega/cgl/ndohlcv.txt").text
 ######### dodać podział na indeksy i spółki
 sql_notowania = split_txt_to_insert(notowania, "NOTOWANIA", "SPOLKA")
-
+sql_wig = split_txt_to_insert(notowania,"WIG","INDEX")
 #część odpowiadająca za pobranie danych z giełd światowych i przerobienie na sql
 strona_zagranica = requests.get("http://bossa.pl/pub/indzagr/mstock/sesjazgr/sesjazgr.prn").text
 sql_zagranica = split_txt_to_insert(strona_zagranica, "GIELDY", "GIELDA")
@@ -81,7 +86,6 @@ connection = pymysql.connect(host = "host",
                              db = "mysql",
                              charset = "utf8mb4",
                              cursorclass = pymysql.cursors.DictCursor)
-
 cur = connection.cursor()
 cc = cur.execute(sql_notowania)
 print(cc)
@@ -91,3 +95,4 @@ connection.commit()
 cur.close()
 connection.close()
 '''
+
