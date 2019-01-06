@@ -4,7 +4,7 @@ import pymysql
 def not_allowed(insert_statement):
     not_allowed_list = ['SELECT','DROP','DELETE','UPDATE']
     for i in not_allowed_list:
-        if i in insert_statement:
+        if i.upper() in insert_statement.upper():
             insert_statement = ""
     return insert_statement        
      
@@ -49,7 +49,6 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
 
 
     for i in lista_fix:
-        print(i)
         przecinek = i.find(",")
         a_1 = i[0:przecinek]    
         przecinek = i.find(",",przecinek)
@@ -71,20 +70,21 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
                                                                                     a_zamkniecie)
         if i != lista_fix[-1]:
             a_insert += ","
-        
+
+    a_insert = not_allowed(a_insert)
+    
     return a_insert
         
 #część odpowiadająca za pobranie danych z polskiej gieldy i przerobienie na sql
 notowania = requests.get("http://bossa.pl/pub/ciagle/omega/cgl/ndohlcv.txt").text
-#sql_notowania = split_txt_to_insert(notowania, "NOTOWANIA", "SPOLKA")
-#sql_wig = split_txt_to_insert(notowania,"WIG","INDEX")
+sql_notowania = split_txt_to_insert(notowania, "NOTOWANIA", "SPOLKA")
+sql_wig = split_txt_to_insert(notowania,"WIG","INDEX")
 #część odpowiadająca za pobranie danych z giełd światowych i przerobienie na sql
 strona_zagranica = requests.get("http://bossa.pl/pub/indzagr/mstock/sesjazgr/sesjazgr.prn").text
 sql_zagranica = split_txt_to_insert(strona_zagranica, "GIELDY", "GIELDA")
-print(sql_zagranica)
 #część odpowiadająca za zaciągnięcie do bazy danych walut        
-#strona_waluty = requests.get("http://bossa.pl/pub/waluty/mstock/sesjanbp/sesjanbp.prn").text
-#sql_waluty = split_txt_to_insert(strona_waluty, "WALUTY", "WALUTA")
+strona_waluty = requests.get("http://bossa.pl/pub/waluty/mstock/sesjanbp/sesjanbp.prn").text
+sql_waluty = split_txt_to_insert(strona_waluty, "WALUTY", "WALUTA")
 '''
 #pakowanie do bazy
 connection = pymysql.connect(host = "host",
