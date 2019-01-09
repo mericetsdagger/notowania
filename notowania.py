@@ -1,6 +1,6 @@
 import requests
 import pymysql
-
+from DBCon import DBCon
 def not_allowed(insert_statement):
     not_allowed_list = ['SELECT','DROP','DELETE','UPDATE']
     for i in not_allowed_list:
@@ -78,27 +78,23 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
 #część odpowiadająca za pobranie danych z polskiej gieldy i przerobienie na sql
 notowania = requests.get("http://bossa.pl/pub/ciagle/omega/cgl/ndohlcv.txt").text
 sql_notowania = split_txt_to_insert(notowania, "NOTOWANIA", "SPOLKA")
-sql_wig = split_txt_to_insert(notowania,"WIG","INDEX")
+sql_wig = split_txt_to_insert(notowania,"WIG","INDEKS")
 #część odpowiadająca za pobranie danych z giełd światowych i przerobienie na sql
 strona_zagranica = requests.get("http://bossa.pl/pub/indzagr/mstock/sesjazgr/sesjazgr.prn").text
 sql_zagranica = split_txt_to_insert(strona_zagranica, "GIELDY", "GIELDA")
 #część odpowiadająca za zaciągnięcie do bazy danych walut        
 strona_waluty = requests.get("http://bossa.pl/pub/waluty/mstock/sesjanbp/sesjanbp.prn").text
 sql_waluty = split_txt_to_insert(strona_waluty, "WALUTY", "WALUTA")
-'''
+
 #pakowanie do bazy
-connection = pymysql.connect(host = "host",
-                             user = "user",
-                             passwd = "passwd",
-                             db = "mysql",
-                             charset = "utf8mb4",
-                             cursorclass = pymysql.cursors.DictCursor)
-cur = connection.cursor()
-cc = cur.execute(sql_notowania)
-print(cc)
-for row in cur:
-    print(1)
-connection.commit()    
-cur.close()
-connection.close()
-'''
+
+dbconfig = {'host' : 'localhost',
+            'user' : 'root',
+            'password' : 'kzc1@3',
+            'database' : 'notowania'}
+
+with DBCon(dbconfig) as cursor:
+    cursor.execute(sql_notowania)
+    cursor.execute(sql_wig)
+    cursor.execute(sql_waluty)
+    cursor.execute(sql_zagranica)
