@@ -85,6 +85,9 @@ sql_zagranica = split_txt_to_insert(strona_zagranica, "GIELDY", "GIELDA")
 #część odpowiadająca za zaciągnięcie do bazy danych walut        
 strona_waluty = requests.get("http://bossa.pl/pub/waluty/mstock/sesjanbp/sesjanbp.prn").text
 sql_waluty = split_txt_to_insert(strona_waluty, "WALUTY", "WALUTA")
+#część odpowiadająca za zaciągnięcie do bazy danych NC
+strona_nc = requests.get("http://bossa.pl/pub/newconnect/mstock/sesjancn/sesjancn.prn").text
+sql_nc = split_txt_to_insert(strona_nc, "NC", "SPOLKA")
 
 #pakowanie do bazy
 
@@ -98,3 +101,4 @@ with DBCon(dbconfig) as cursor:
     cursor.execute(sql_wig)
     cursor.execute(sql_waluty)
     cursor.execute(sql_zagranica)
+    cursor.execute(sql_nc)
