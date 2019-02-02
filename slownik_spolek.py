@@ -27,6 +27,11 @@ for row, in cursor.fetchall():
 lista_biezaca = []
 strona = requests.get("http://bossa.pl/pub/newconnect/mstock/sesjancn/sesjancn.prn").text + requests.get("http://bossa.pl/pub/ciagle/omega/cgl/ndohlcv.txt").text
 strona_rozbicie = strona.split("\n")
+spolki_gpw = requests.get("http://bossa.pl/pub/ciagle/omega/cgl/ndohlcv.txt").text.split("\n")
+lista_gpw = []
+
+for j in spolki_gpw:
+    lista_gpw.append(j[0:j.find(",")])
 for i in strona_rozbicie:
     spolka = i[0:i.find(",")]
     if spolka != "":
@@ -38,26 +43,26 @@ for i in strona_rozbicie:
         pass
 # skrot spolka rynek
 lista = [item for item in lista_biezaca if item not in lista_spolek]
-
 link_bankier = "https://www.bankier.pl/inwestowanie/profile/quote.html?symbol=" #dodac skrot spolki
 sql_insert = "insert into notowania.dict_spolki (skrot, spolka, rynek) values"
+counter = 0
+
 for i in lista:
-    if i == "ABCDATA":
-        pobranie = requests.get(link_bankier + i).text
-        cala_nazwa = pobranie[pobranie.find("<title>")+7:pobranie.find(" (")]
-        a = pobranie.find("""<td>Rynek notowań:</td>""")+85
-        rynek = pobranie[a:pobranie.find("</td>",a,a+80)]
-        print(a)
+    counter += 1
+    pobranie = requests.get(link_bankier + i).text
+    cala_nazwa = pobranie[pobranie.find("<title>")+7:pobranie.find(" (")]
+    if i in lista_gpw:
+        rynek_notowan = "GPW"
+    else:
+        rynek_notowan = "NC"
+    sql_insert = sql_insert + "\n('{}','{}','{}')".format(i, cala_nazwa, rynek_notowan)
+    if counter != len(lista):
+        sql_insert += ","
         
-        
-        
-        
+dbconfig = {'host' : 'H',
+            'user' : 'L',
+            'password' : 'P',
+            'database' : 'DB'}
 
-
-
-
-spolki_gpw = requests.get("https://www.bankier.pl/gielda/notowania/akcje").text
-
-
-  
-    
+with DBCon(dbconfig) as cursor:
+    cursor.execute(sql_insert)
