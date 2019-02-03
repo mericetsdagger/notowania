@@ -91,10 +91,13 @@ sql_nc = split_txt_to_insert(strona_nc, "NC", "SPOLKA")
 
 #pakowanie do bazy
 
-dbconfig = {'host' : 'localhost',
-            'user' : 'root',
-            'password' : 'kzc1@3',
-            'database' : 'notowania'}
+dbcon_read = open("dbconfig.txt","r")
+db_list = dbcon_read.read().split("\n")
+dbconfig = {}
+for i in db_list:
+    dbconfig[str(i)[0:str(i).find(":")]] = str(i)[str(i).find(":")+1:]
+    print(str(i)[0:str(i).find(":")])
+    print(str(i)[str(i).find(":")+1:])
 
 with DBCon(dbconfig) as cursor:
     cursor.execute(sql_notowania)
