@@ -5,10 +5,13 @@ from DBCon import DBCon
 
 lista_spolek = []
 lista_omitted = []
-dbconfig = {'host' : 'localhost',
-            'user' : 'root',
-            'password' : 'kzc1@3',
-            'database' : 'notowania'}
+dbcon_read = open("dbconfig.txt","r")
+db_list = dbcon_read.read().split("\n")
+dbconfig = {}
+for i in db_list:
+    dbconfig[str(i)[0:str(i).find(":")]] = str(i)[str(i).find(":")+1:]
+    print(str(i)[0:str(i).find(":")])
+    print(str(i)[str(i).find(":")+1:])
 
 conn = mysql.connector.connect(**dbconfig)
 cursor = conn.cursor()
@@ -23,7 +26,7 @@ cursor.execute(sql_spolki)
 
 for row, in cursor.fetchall():
     lista_spolek.append(row)    
- 
+conn.close() 
 lista_biezaca = []
 strona = requests.get("http://bossa.pl/pub/newconnect/mstock/sesjancn/sesjancn.prn").text + requests.get("http://bossa.pl/pub/ciagle/omega/cgl/ndohlcv.txt").text
 strona_rozbicie = strona.split("\n")
@@ -58,11 +61,8 @@ for i in lista:
     sql_insert = sql_insert + "\n('{}','{}','{}')".format(i, cala_nazwa, rynek_notowan)
     if counter != len(lista):
         sql_insert += ","
-        
-dbconfig = {'host' : 'H',
-            'user' : 'L',
-            'password' : 'P',
-            'database' : 'DB'}
 
-with DBCon(dbconfig) as cursor:
-    cursor.execute(sql_insert)
+if sql_insert != "insert into notowania.dict_spolki (skrot, spolka, rynek) values":
+    
+    with DBCon(dbconfig) as cursor:
+        cursor.execute(sql_insert)
