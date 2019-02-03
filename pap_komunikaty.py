@@ -46,3 +46,11 @@ for i in kom_list:
         intt = intt+1
     else:
         pass
+
+dbcon_read = open("dbconfig.txt","r")
+db_list = dbcon_read.read().split("\n")
+dbconfig = {}
+for i in db_list:
+    dbconfig[str(i)[0:str(i).find(":")]] = str(i)[str(i).find(":")+1:]
+    print(str(i)[0:str(i).find(":")])
+    print(str(i)[str(i).find(":")+1:])    
