@@ -1,6 +1,6 @@
 import requests
-import pymysql
 from DBCon import DBCon
+import mysql.connector
 def not_allowed(insert_statement):
     not_allowed_list = ['SELECT','DROP','DELETE','UPDATE']
     for i in not_allowed_list:
@@ -47,10 +47,31 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
     else:
         lista_fix = lista.copy()
 
+    dbcon_read = open("dbconfig.txt","r")
+    db_list = dbcon_read.read().split("\n")
+    dbconfig = {}
+    for i in db_list:
+        dbconfig[str(i[0:i.find(":")])] = str(i[i.find(":")+1:])
 
+    conn = mysql.connector.connect(**dbconfig)
+    cursor = conn.cursor()
+    sql = "select concat(skrot,'@',id) from notowania.dict_spolki"
+    cursor.execute(sql)
+    spolki = []
+    for row, in cursor.fetchall():
+        spolki.append(row)    
+    conn.close()
+
+    dict_spolki = {}
+    for i in spolki:
+        od = str(i[0:i.find("@")])
+        do = i[i.find("@")+1:]
+        dict_spolki[od] = do
+    
     for i in lista_fix:
         przecinek = i.find(",")
-        a_1 = i[0:przecinek]    
+        a_1 = i[0:przecinek]
+        a_2 = dict_spolki[a_1]
         przecinek = i.find(",",przecinek)
         a_data = i[przecinek+1:i.find(",",przecinek+1)]
         przecinek = i.find(",",przecinek+1)
@@ -62,7 +83,7 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
         przecinek = i.find(",",przecinek+1)
         a_zamkniecie = i[przecinek+1:i.find(",",przecinek+1)]
 
-        a_insert += ("\n ('{}',str_to_date('{}','%Y%m%d'), {}, {}, {}, {})").format(a_1,
+        a_insert += ("\n ('{}',str_to_date('{}','%Y%m%d'), {}, {}, {}, {})").format(a_2,
                                                                                     a_data,
                                                                                     a_otwarcie,
                                                                                     a_maks,
@@ -77,7 +98,7 @@ def split_txt_to_insert(podaj_wyciag, tabela, a1nazwa):
         
 #część odpowiadająca za pobranie danych z polskiej gieldy i przerobienie na sql
 notowania = requests.get("http://bossa.pl/pub/ciagle/omega/cgl/ndohlcv.txt").text
-sql_notowania = split_txt_to_insert(notowania, "NOTOWANIA", "SPOLKA")
+sql_notowania = split_txt_to_insert(notowania, "NOTOWANIA", "ID_SPOLKA")
 sql_wig = split_txt_to_insert(notowania,"WIG","INDEKS")
 #część odpowiadająca za pobranie danych z giełd światowych i przerobienie na sql
 strona_zagranica = requests.get("http://bossa.pl/pub/indzagr/mstock/sesjazgr/sesjazgr.prn").text
@@ -87,17 +108,13 @@ strona_waluty = requests.get("http://bossa.pl/pub/waluty/mstock/sesjanbp/sesjanb
 sql_waluty = split_txt_to_insert(strona_waluty, "WALUTY", "WALUTA")
 #część odpowiadająca za zaciągnięcie do bazy danych NC
 strona_nc = requests.get("http://bossa.pl/pub/newconnect/mstock/sesjancn/sesjancn.prn").text
-sql_nc = split_txt_to_insert(strona_nc, "NC", "SPOLKA")
-
+sql_nc = split_txt_to_insert(strona_nc, "NC", "ID_SPOLKA")
 #pakowanie do bazy
 
-dbcon_read = open("dbconfig.txt","r")
-db_list = dbcon_read.read().split("\n")
-dbconfig = {}
-for i in db_list:
-    dbconfig[str(i)[0:str(i).find(":")]] = str(i)[str(i).find(":")+1:]
-    print(str(i)[0:str(i).find(":")])
-    print(str(i)[str(i).find(":")+1:])
+dbconfig = {'host' : 'localhost',
+            'user' : 'root',
+            'password' : 'kzc1@3',
+            'database' : 'notowania'}
 
 with DBCon(dbconfig) as cursor:
     cursor.execute(sql_notowania)
